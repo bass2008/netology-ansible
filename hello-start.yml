@@ -1,0 +1,48 @@
+---
+- name: Netology ML Homework
+  hosts: all
+  become: yes
+  vars:
+    packages:
+      - net-tools
+      - git
+      - tree
+      - htop
+      - mc
+      - vim
+    user_groups:
+      - { group: 'devops_1', user: 'devops_1' }
+      - { group: 'test_1', user: 'test_1' }
+
+  tasks:
+    - name: Ping hosts
+      ping:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install required packages
+      package:
+        name: "{{ packages }}"
+        state: present
+
+    - name: Copy test.txt file
+      copy:
+        src: test.txt
+        dest: /tmp/test.txt
+
+    - name: Create groups
+      group:
+        name: "{{ item.group }}"
+        state: present
+      loop: "{{ user_groups }}"
+
+    - name: Create users
+      user:
+        name: "{{ item.user }}"
+        group: "{{ item.group }}"
+        create_home: yes
+        home: "/home/{{ item.user }}"
+      loop: "{{ user_groups }}"
